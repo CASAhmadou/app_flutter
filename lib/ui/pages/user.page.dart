@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 class UserPage extends StatefulWidget {
@@ -12,24 +11,50 @@ class _UserPageState extends State<UserPage> {
   bool notVisible=false;
   TextEditingController textController = new TextEditingController();
   dynamic data;
+  int curentPage = 0;
+  int totalPages = 0;
+  int pageSize = 20;
+  List<dynamic> items = [];
+  ScrollController scrollController = new ScrollController();
 
   void _search(String query) {
-    String url = "https://api.github.com/search/users?q=${query}&per_page=20&page=0";
+    String url = "https://api.github.com/search/users?q=${query}&per_page=$pageSize&page=$curentPage";
     print(url);
     http.get(Uri.parse(url))
         .then((response) {
           setState(() {
-            this.data =json.decode(response.body);
+            data =json.decode(response.body);
+            items.addAll(data['items']);
+            if(data['total_count'] % pageSize ==0){
+              totalPages=data['total_count']~/pageSize;
+            } else totalPages = (data['total_count']/pageSize).floor() + 1;
           });
     })
         .catchError((err){
       print(err);
     });
   }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    scrollController.addListener(() {
+      if(scrollController.position.pixels==scrollController.position.maxScrollExtent){
+        setState(() {
+          if(curentPage<totalPages-1){
+            ++curentPage;
+            _search(query);
+          }
+        });
+      }
+    });
+  }
+
 @override
   Widget build(BuildContext context){
     return Scaffold(
-      appBar: AppBar(title: Text('Users => ${query}'),),
+      appBar: AppBar(title: Text('Users => ${query} => $curentPage/$totalPages'),),
       body: Center(
         child: Column(
           children: [
@@ -73,6 +98,8 @@ class _UserPageState extends State<UserPage> {
                     icon: Icon(Icons.search, color: Colors.deepOrange),
                     onPressed: (){
                       setState(() {
+                        items = [];
+                        curentPage = 0;
                         this.query = textController.text;
                         _search(query);
                       });
@@ -82,10 +109,28 @@ class _UserPageState extends State<UserPage> {
             ),
             Expanded(
               child: ListView.builder(
-                  itemCount: (data==null)?0:data['items'].length,
+                controller: scrollController,
+                  itemCount: items.length,
                   itemBuilder: (context,index){
                     return ListTile(
-                      title: Text("${data['items'][index]['login']}"),
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                backgroundImage: NetworkImage(items[index]['avatar_url']),
+                                radius: 30,
+                              ),
+                              SizedBox(width: 20,),
+                              Text("${items[index]['login']}"),
+                            ],
+                          ),
+                          CircleAvatar(
+                              child: Text("${items[index]['score']}")
+                          )
+                        ],
+                      ),
                     );
                   }
               ),
