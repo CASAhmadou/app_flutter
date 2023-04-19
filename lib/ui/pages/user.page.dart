@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:app_flutter/ui/pages/repositories/detailUser.page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 class UserPage extends StatefulWidget {
@@ -108,11 +109,21 @@ class _UserPageState extends State<UserPage> {
               ],
             ),
             Expanded(
-              child: ListView.builder(
+              child: ListView.separated(
+                separatorBuilder: (context, index) =>
+                    Divider(height: 2, color: Colors.deepOrange),
                 controller: scrollController,
                   itemCount: items.length,
                   itemBuilder: (context,index){
                     return ListTile(
+                      onTap: (){
+                        Navigator.push(context,
+                            MaterialPageRoute(builder:
+                                (context) => DetailUserPage(
+                                  login: items[index]['login'],
+                                  avatarUrl: items[index]['avatar_url'],
+                                )));
+                      },
                       title: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
