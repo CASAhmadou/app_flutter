@@ -24,11 +24,11 @@ class MyDrawer extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       backgroundImage: AssetImage("assets/images/cas.jpeg"),
-                      radius: 30,
+                      radius: 60,
                     ),
                     CircleAvatar(
                       backgroundImage: AssetImage("assets/images/images.jpeg"),
-                      radius: 60,
+                      radius: 30,
                     ),
                   ],
                 ),
